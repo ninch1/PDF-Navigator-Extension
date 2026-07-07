@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Extension Demo Page</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        line-height: 1.6;
+        padding: 0 20px;
+      }
+
+      h1 {
+        margin-bottom: 10px;
+      }
+
+      p {
+        font-size: 18px;
+      }
+
+      .note {
+        background: #f2f2f2;
+        padding: 12px;
+        border-left: 4px solid #777;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Demo Page for Chrome Extension</h1>
+
+    <p class="note">
+      This page is only for testing your content script. You can use it to
+      practice selecting paragraphs, spans, and sentences.
+    </p>
+
+    <p>
+      Chrome extensions can run JavaScript on normal web pages. A content script
+      is the file that gets injected into the page. You can use it to read text,
+      change styles, and listen for keyboard events.
+    </p>
+
+    <p>
+      This is the second paragraph. It has several sentences. Try highlighting
+      this paragraph with your extension. Then try changing only one sentence at
+      a time.
+    </p>
+
+    <p>
+      The Tab key should move forward through the text. Shift plus Tab should
+      move backward. Later, the same idea can be used inside a PDF viewer.
+    </p>
+
+    <p>
+      This paragraph contains some inline text inside spans.
+      <span>This sentence is inside a span.</span>
+      <span>Here is another span sentence.</span>
+      <span>The extension should be able to find these spans too.</span>
+    </p>
+
+    <p>
+      Building small experiments first is better than trying to build the full
+      project immediately. Start with paragraphs. Then move to sentences. After
+      that, connect the same logic to PDF text.
+    </p>
+  </body>
+</html>
