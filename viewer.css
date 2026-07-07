@@ -1,0 +1,16 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 24px;
+  background: #f4f4f4;
+}
+
+#pdf-container {
+  background: white;
+  padding: 16px;
+  width: fit-content;
+  border: 1px solid #ccc;
+}
+
+#pdf-canvas {
+  display: block;
+}
