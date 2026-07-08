@@ -1,4 +1,12 @@
-let activeSentence = -1;
+// index of the currently highlighted text span
+let activeSpanIndex = -1;
+
+// current list of text spans rendered by PDF.js
+let textSpans = [];
+
+function updateTextSpans() {
+  textSpans = document.querySelectorAll('.textLayer span');
+}
 
 function startObserver() {
   const viewer = document.getElementById('viewer');
@@ -8,43 +16,53 @@ function startObserver() {
     return;
   }
 
+  // update once in case spans already exist
+  updateTextSpans();
+
   const observer = new MutationObserver(() => {
-    const textSpans = document.querySelectorAll('.textLayer span');
-
-    if (textSpans.length > 0) {
-      console.log('Text layer is ready');
-      console.log('Span count:', textSpans.length);
-
-      observer.disconnect();
-
-      // once the text layer is ready, we can start the sentence navigator
-      startSentenceNavigator(textSpans);
-    }
+    updateTextSpans();
   });
 
+  // watch for new PDF text spans
   observer.observe(viewer, {
     childList: true,
     subtree: true,
   });
 }
 
-// we start the observer when the document is ready
+// start when the document is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', startObserver);
 } else {
   startObserver();
 }
 
-function startSentenceNavigator(textSpans) {
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Tab') {
-      event.preventDefault();
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Tab') return;
 
-      activeSentence++;
-      if (activeSentence >= textSpans.length) {
-        activeSentence = 0;
-      }
-      textSpans[activeSentence].classList.add('active');
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (textSpans.length <= 0) return;
+
+  // remove old highlight
+  if (activeSpanIndex >= 0 && activeSpanIndex < textSpans.length) {
+    textSpans[activeSpanIndex].classList.remove('active');
+  }
+
+  if (event.shiftKey) {
+    activeSpanIndex--;
+
+    if (activeSpanIndex < 0) {
+      activeSpanIndex = textSpans.length - 1;
     }
-  });
-}
+  } else {
+    activeSpanIndex++;
+
+    if (activeSpanIndex >= textSpans.length) {
+      activeSpanIndex = 0;
+    }
+  }
+
+  textSpans[activeSpanIndex].classList.add('active');
+});

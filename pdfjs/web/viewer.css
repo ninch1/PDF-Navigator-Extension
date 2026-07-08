@@ -15,8 +15,7 @@
 
 /* custom sentence navigator styles */
 .active {
-  background-color: yellow;
-  color: black;
+  outline: 2px solid orange;
 }
 
 .messageBar {
