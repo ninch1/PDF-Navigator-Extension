@@ -4,8 +4,6 @@ let activeGroupIndex = -1;
 let sentenceGroups = [];
 
 function updateSentenceGroups() {
-  clearActiveGroup();
-
   const textSpans = document.querySelectorAll('.textLayer span');
   sentenceGroups = [];
 
