@@ -1,11 +1,36 @@
-// index of the currently highlighted text span
-let activeSpanIndex = -1;
+// index of the currently highlighted sentence group
+let activeGroupIndex = -1;
 
-// current list of text spans rendered by PDF.js
-let textSpans = [];
+let sentenceGroups = [];
 
-function updateTextSpans() {
-  textSpans = document.querySelectorAll('.textLayer span');
+function updateSentenceGroups() {
+  clearActiveGroup();
+
+  const textSpans = document.querySelectorAll('.textLayer span');
+  sentenceGroups = [];
+
+  let currentGroup = [];
+
+  for (let i = 0; i < textSpans.length; i++) {
+    const span = textSpans[i];
+    const text = span.textContent.trim();
+
+    if (text.length === 0) {
+      continue;
+    }
+
+    currentGroup.push(span);
+
+    if (text.endsWith('.') || text.endsWith('?') || text.endsWith('!')) {
+      sentenceGroups.push(currentGroup);
+      currentGroup = [];
+    }
+  }
+
+  // add any remaining text spans to the last group
+  if (currentGroup.length > 0) {
+    sentenceGroups.push(currentGroup);
+  }
 }
 
 function startObserver() {
@@ -17,10 +42,10 @@ function startObserver() {
   }
 
   // update once in case spans already exist
-  updateTextSpans();
+  updateSentenceGroups();
 
   const observer = new MutationObserver(() => {
-    updateTextSpans();
+    updateSentenceGroups();
   });
 
   // watch for new PDF text spans
@@ -43,26 +68,30 @@ document.addEventListener('keydown', (event) => {
   event.preventDefault();
   event.stopPropagation();
 
-  if (textSpans.length <= 0) return;
+  if (sentenceGroups.length <= 0) return;
 
   // remove old highlight
-  if (activeSpanIndex >= 0 && activeSpanIndex < textSpans.length) {
-    textSpans[activeSpanIndex].classList.remove('active');
+  if (activeGroupIndex >= 0 && activeGroupIndex < sentenceGroups.length) {
+    sentenceGroups[activeGroupIndex].forEach((span) =>
+      span.classList.remove('active'),
+    );
   }
 
   if (event.shiftKey) {
-    activeSpanIndex--;
+    activeGroupIndex--;
 
-    if (activeSpanIndex < 0) {
-      activeSpanIndex = textSpans.length - 1;
+    if (activeGroupIndex < 0) {
+      activeGroupIndex = sentenceGroups.length - 1;
     }
   } else {
-    activeSpanIndex++;
+    activeGroupIndex++;
 
-    if (activeSpanIndex >= textSpans.length) {
-      activeSpanIndex = 0;
+    if (activeGroupIndex >= sentenceGroups.length) {
+      activeGroupIndex = 0;
     }
   }
 
-  textSpans[activeSpanIndex].classList.add('active');
+  sentenceGroups[activeGroupIndex].forEach((span) =>
+    span.classList.add('active'),
+  );
 });
