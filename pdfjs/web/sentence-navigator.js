@@ -31,6 +31,7 @@ function updateSentenceGroups() {
   }
 }
 
+// start the observer to update the sentence groups when the PDF text spans change
 function startObserver() {
   const viewer = document.getElementById('viewer');
 
@@ -46,7 +47,7 @@ function startObserver() {
     updateSentenceGroups();
   });
 
-  // watch for new PDF text spans
+  // watch for new PDF text spans to update the sentence groups
   observer.observe(viewer, {
     childList: true,
     subtree: true,
@@ -60,7 +61,28 @@ if (document.readyState === 'loading') {
   startObserver();
 }
 
+// remove the active group highlight without changing the index
+function clearActiveGroup() {
+  if (activeGroupIndex >= 0 && activeGroupIndex < sentenceGroups.length) {
+    sentenceGroups[activeGroupIndex].forEach((span) =>
+      span.classList.remove('active'),
+    );
+  }
+}
+
+// clear the active group highlight when the user clicks anywhere
+document.addEventListener('click', () => {
+  clearActiveGroup();
+  activeGroupIndex = -1;
+});
+
 document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    clearActiveGroup();
+    activeGroupIndex = -1;
+    return;
+  }
+
   if (event.key !== 'Tab') return;
 
   event.preventDefault();
@@ -69,12 +91,9 @@ document.addEventListener('keydown', (event) => {
   if (sentenceGroups.length <= 0) return;
 
   // remove old highlight
-  if (activeGroupIndex >= 0 && activeGroupIndex < sentenceGroups.length) {
-    sentenceGroups[activeGroupIndex].forEach((span) =>
-      span.classList.remove('active'),
-    );
-  }
+  clearActiveGroup();
 
+  // get new index
   if (event.shiftKey) {
     activeGroupIndex--;
 
@@ -89,7 +108,14 @@ document.addEventListener('keydown', (event) => {
     }
   }
 
+  // add new highlight
   sentenceGroups[activeGroupIndex].forEach((span) =>
     span.classList.add('active'),
   );
+
+  // scroll to new highlight
+  sentenceGroups[activeGroupIndex][0].scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  });
 });
