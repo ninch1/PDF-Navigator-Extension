@@ -1,6 +1,11 @@
 // index of the currently highlighted sentence group
 let activeGroupIndex = -1;
 
+// stable reference to the first span of the active group. sentenceGroups is
+// rebuilt whenever PDF.js lazily renders/unloads pages, so a bare index goes
+// stale; we re-derive activeGroupIndex from this anchor after every rebuild.
+let activeAnchorSpan = null;
+
 // list of sentence groups, where each group contains one or more original PDF.js text spans
 let sentenceGroups = [];
 
@@ -205,15 +210,126 @@ function shouldSkipSentenceEnd(text, index) {
 // original ".textLayer > span" elements. Trade-off: a span spanning the end
 // of one sentence and the start of the next is over-highlighted as a whole.
 
+function scrollViewer(direction) {
+  const viewerContainer = document.getElementById('viewerContainer');
+
+  if (!viewerContainer) {
+    return;
+  }
+
+  const scrollAmount = viewerContainer.clientHeight * 0.8;
+
+  if (direction === 'down') {
+    viewerContainer.scrollBy({
+      top: scrollAmount,
+      behavior: 'smooth',
+    });
+  }
+
+  if (direction === 'up') {
+    viewerContainer.scrollBy({
+      top: -scrollAmount,
+      behavior: 'smooth',
+    });
+  }
+}
+
+// reads the PDF.js page number that a text span belongs to
+function getPageNumber(span) {
+  const pageEl = span.closest('.page');
+
+  if (!pageEl) {
+    return 0;
+  }
+
+  return parseInt(pageEl.getAttribute('data-page-number'), 10) || 0;
+}
+
+// after sentenceGroups is rebuilt, re-point activeGroupIndex at the group that
+// still contains the anchored span so navigation and the highlight stay in sync
+function syncActiveGroupAfterRebuild() {
+  if (!activeAnchorSpan) {
+    activeGroupIndex = -1;
+    return;
+  }
+
+  activeGroupIndex = sentenceGroups.findIndex((group) =>
+    group.includes(activeAnchorSpan),
+  );
+
+  // keep the highlight visible if the anchored group is still rendered
+  if (activeGroupIndex >= 0) {
+    sentenceGroups[activeGroupIndex].forEach((span) =>
+      span.classList.add('active'),
+    );
+  }
+}
+
+// collects real leaf text spans from the PDF.js text layers. Not every valid
+// text span carries role="presentation", so we query all spans under
+// .textLayer and filter out wrappers and invisible/zero-size spans instead of
+// relying on that exact attribute.
+function getTextSpans() {
+  const allSpans = Array.from(document.querySelectorAll('.textLayer span'));
+
+  return allSpans.filter((span) => {
+    const text = span.textContent.trim();
+
+    if (!text) {
+      return false;
+    }
+
+    // skip wrapper spans that contain another span (keep the leaf)
+    if (span.querySelector('span')) {
+      return false;
+    }
+
+    const rect = span.getBoundingClientRect();
+
+    if (rect.width === 0 || rect.height === 0) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
 // rebuilds sentence groups directly from the original PDF.js text spans
 function updateSentenceGroups() {
-  const textSpans = document.querySelectorAll('.textLayer > span');
+  const textSpans = getTextSpans();
+
+  // DOM order is NOT reliable: PDF.js inserts spans asynchronously and lazily
+  // per page. Sort into reading order (page, then top, then left) so groups and
+  // navigation follow visual order instead of insertion order.
+  const ordered = textSpans
+    .map((span) => {
+      const rect = span.getBoundingClientRect();
+      return {
+        span,
+        page: getPageNumber(span),
+        top: rect.top,
+        left: rect.left,
+      };
+    })
+    .sort((a, b) => {
+      if (a.page !== b.page) {
+        return a.page - b.page;
+      }
+
+      // treat spans within ~5px vertically as the same line, order by left
+      if (Math.abs(a.top - b.top) > 5) {
+        return a.top - b.top;
+      }
+
+      return a.left - b.left;
+    });
+
   sentenceGroups = [];
 
   let currentGroup = [];
 
-  for (let i = 0; i < textSpans.length; i++) {
-    const span = textSpans[i];
+  for (const entry of ordered) {
+    const span = entry.span;
     const text = span.textContent.trim();
 
     if (text.length === 0) {
@@ -233,6 +349,8 @@ function updateSentenceGroups() {
   if (currentGroup.length > 0) {
     sentenceGroups.push(currentGroup);
   }
+
+  syncActiveGroupAfterRebuild();
 }
 
 // start the observer to update the sentence groups when the PDF text spans change
@@ -247,9 +365,13 @@ function startObserver() {
   // update once in case spans already exist
   updateSentenceGroups();
 
-  // PDF.js renders text dynamically, so watch the viewer for new text spans
+  // PDF.js adds text spans dynamically as pages render.
+  // A single page can trigger many DOM changes, so wait briefly and rebuild once
+  // instead of rebuilding after every small change.
+  let rebuildTimer = null;
   const observer = new MutationObserver(() => {
-    updateSentenceGroups();
+    clearTimeout(rebuildTimer);
+    rebuildTimer = setTimeout(updateSentenceGroups, 100);
   });
 
   observer.observe(viewer, {
@@ -278,12 +400,14 @@ function clearActiveGroup() {
 document.addEventListener('click', () => {
   clearActiveGroup();
   activeGroupIndex = -1;
+  activeAnchorSpan = null;
 });
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     clearActiveGroup();
     activeGroupIndex = -1;
+    activeAnchorSpan = null;
     return;
   }
 
@@ -295,23 +419,27 @@ document.addEventListener('keydown', (event) => {
 
   if (sentenceGroups.length <= 0) return;
 
-  // remove old highlight
+  // compute the target index (from -1 the first Tab lands on group 0)
+  const target = event.shiftKey ? activeGroupIndex - 1 : activeGroupIndex + 1;
+
+  // at the edges: scroll to reveal more (lazy) content instead of wrapping to
+  // the other end. Once PDF.js renders the next page, the observer grows
+  // sentenceGroups and the next Tab continues forward from here.
+  if (target < 0) {
+    scrollViewer('up');
+    return;
+  }
+
+  if (target >= sentenceGroups.length) {
+    scrollViewer('down');
+    return;
+  }
+
+  // remove old highlight only once we know we are actually moving
   clearActiveGroup();
 
-  // get new index
-  if (event.shiftKey) {
-    activeGroupIndex--;
-
-    if (activeGroupIndex < 0) {
-      activeGroupIndex = sentenceGroups.length - 1;
-    }
-  } else {
-    activeGroupIndex++;
-
-    if (activeGroupIndex >= sentenceGroups.length) {
-      activeGroupIndex = 0;
-    }
-  }
+  activeGroupIndex = target;
+  activeAnchorSpan = sentenceGroups[activeGroupIndex][0];
 
   // add new highlight
   sentenceGroups[activeGroupIndex].forEach((span) =>
