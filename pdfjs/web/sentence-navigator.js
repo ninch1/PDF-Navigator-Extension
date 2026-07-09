@@ -294,6 +294,61 @@ function getTextSpans() {
   });
 }
 
+// Conservative, tunable thresholds for layout-aware group breaks. They only add
+// *extra* break points on top of sentence punctuation; they never merge groups.
+const layoutBreak = {
+  // vertical gap (next.top - current.top) beyond this multiple of the current
+  // line height is treated as a paragraph break rather than a normal line wrap.
+  // Normal wrapping is ~1x line height, so keep this comfortably above 1.
+  paragraphGapMultiplier: 1.8,
+  // a span is only considered a heading if it is at most this many characters,
+  // so body-text lines are never mistaken for headings.
+  headingMaxChars: 60,
+  // a heading line's height must be at least this many times the next span's
+  // height to count as a size jump (e.g. a big header above smaller body text).
+  headingHeightRatio: 1.4,
+};
+
+// decides whether an obvious layout boundary sits between two consecutive
+// ordered entries, independent of sentence punctuation. Returns false for
+// normal line wrapping so multi-line sentences stay in one group.
+function shouldBreakBetweenSpans(currentEntry, nextEntry) {
+  if (!currentEntry || !nextEntry) {
+    return false;
+  }
+
+  // different pages are always a hard boundary
+  if (currentEntry.page !== nextEntry.page) {
+    return true;
+  }
+
+  const verticalGap = nextEntry.top - currentEntry.top;
+
+  // only consider a gap when the next span actually starts on a lower line;
+  // same-line spans (gap ~0) and any negative noise are ignored
+  if (
+    currentEntry.height > 0 &&
+    verticalGap > currentEntry.height * layoutBreak.paragraphGapMultiplier
+  ) {
+    return true;
+  }
+
+  // heading heuristic: a short line with no sentence punctuation whose height is
+  // noticeably larger than the following span (a size jump into body text)
+  const currentText = currentEntry.text || '';
+  const isShort = currentText.length <= layoutBreak.headingMaxChars;
+  const hasNoSentencePunctuation = !/[.?!]/.test(currentText);
+  const isTallerThanNext =
+    nextEntry.height > 0 &&
+    currentEntry.height >= nextEntry.height * layoutBreak.headingHeightRatio;
+
+  if (isShort && hasNoSentencePunctuation && isTallerThanNext) {
+    return true;
+  }
+
+  return false;
+}
+
 // rebuilds sentence groups directly from the original PDF.js text spans
 function updateSentenceGroups() {
   const textSpans = getTextSpans();
@@ -309,6 +364,8 @@ function updateSentenceGroups() {
         page: getPageNumber(span),
         top: rect.top,
         left: rect.left,
+        height: rect.height,
+        text: span.textContent.trim(),
       };
     })
     .sort((a, b) => {
@@ -328,9 +385,10 @@ function updateSentenceGroups() {
 
   let currentGroup = [];
 
-  for (const entry of ordered) {
+  for (let i = 0; i < ordered.length; i++) {
+    const entry = ordered[i];
     const span = entry.span;
-    const text = span.textContent.trim();
+    const text = entry.text;
 
     if (text.length === 0) {
       continue;
@@ -338,8 +396,12 @@ function updateSentenceGroups() {
 
     currentGroup.push(span);
 
-    // group spans together until one ends with a real sentence-ending mark
-    if (isSentenceEnd(text)) {
+    // close the group on a real sentence-ending mark, or on an obvious layout
+    // boundary (page change, paragraph gap, heading) between this span and the
+    // next ordered span
+    const nextEntry = ordered[i + 1];
+
+    if (isSentenceEnd(text) || shouldBreakBetweenSpans(entry, nextEntry)) {
       sentenceGroups.push(currentGroup);
       currentGroup = [];
     }
