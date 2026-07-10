@@ -1,3 +1,40 @@
+const DEFAULT_SETTINGS = {
+  highlightColor: "#ffa500",
+  borderThickness: 2,
+};
+
+function applyNavigatorSettings(settings) {
+  const root = document.documentElement;
+  root.style.setProperty("--sentence-highlight-color", settings.highlightColor);
+  root.style.setProperty(
+    "--sentence-border-thickness",
+    `${settings.borderThickness}px`,
+  );
+}
+
+function loadNavigatorSettings() {
+  if (typeof chrome === "undefined" || !chrome.storage?.local) {
+    applyNavigatorSettings(DEFAULT_SETTINGS);
+    return;
+  }
+
+  chrome.storage.local.get(DEFAULT_SETTINGS, (settings) => {
+    applyNavigatorSettings(settings);
+  });
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== "local") {
+      return;
+    }
+
+    chrome.storage.local.get(DEFAULT_SETTINGS, (settings) => {
+      applyNavigatorSettings(settings);
+    });
+  });
+}
+
+loadNavigatorSettings();
+
 // index of the currently highlighted sentence group
 let activeGroupIndex = -1;
 
@@ -304,7 +341,7 @@ function syncActiveGroupAfterRebuild() {
   // keep the highlight visible if the anchored group is still rendered
   if (activeGroupIndex >= 0) {
     sentenceGroups[activeGroupIndex].forEach((span) =>
-      span.classList.add("active"),
+      span.classList.add("sentence-active"),
     );
   }
 }
@@ -497,7 +534,7 @@ if (document.readyState === "loading") {
 function clearActiveGroup() {
   if (activeGroupIndex >= 0 && activeGroupIndex < sentenceGroups.length) {
     sentenceGroups[activeGroupIndex].forEach((span) =>
-      span.classList.remove("active"),
+      span.classList.remove("sentence-active"),
     );
   }
 }
@@ -560,7 +597,7 @@ document.addEventListener("keydown", (event) => {
 
   // add new highlight
   sentenceGroups[activeGroupIndex].forEach((span) =>
-    span.classList.add("active"),
+    span.classList.add("sentence-active"),
   );
 
   // scroll to new highlight

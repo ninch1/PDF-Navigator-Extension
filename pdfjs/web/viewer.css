@@ -14,8 +14,13 @@
  */
 
 /* custom sentence navigator styles */
-.active {
-  outline: 2px solid orange;
+:root {
+  --sentence-highlight-color: #ffa500;
+  --sentence-border-thickness: 2px;
+}
+
+.sentence-active {
+  outline: var(--sentence-border-thickness) solid var(--sentence-highlight-color);
 }
 
 .messageBar {

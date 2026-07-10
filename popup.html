@@ -1,10 +1,62 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8" />
     <title>PDF Sentence Navigator</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 12px;
+        min-width: 220px;
+      }
+
+      h3 {
+        margin: 0 0 12px;
+        font-size: 14px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 13px;
+      }
+
+      input[type="color"] {
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        margin-top: 4px;
+      }
+
+      a {
+        display: inline-block;
+        margin-top: 4px;
+        font-size: 13px;
+      }
+    </style>
   </head>
   <body>
     <h3>PDF Sentence Navigator</h3>
+
+    <label>
+      Highlight color
+      <input type="color" id="highlightColor" value="#ffa500" />
+    </label>
+
+    <label>
+      Border thickness: <span id="borderThicknessValue">2px</span>
+      <input
+        type="range"
+        id="borderThickness"
+        min="1"
+        max="8"
+        step="1"
+        value="2"
+      />
+    </label>
 
     <a
       href="pdfjs/web/viewer.html?file=../pdf-samples/sample.pdf"
@@ -12,5 +64,7 @@
     >
       Open sample PDF
     </a>
+
+    <script src="popup.js"></script>
   </body>
 </html>
