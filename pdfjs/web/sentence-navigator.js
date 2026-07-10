@@ -501,7 +501,6 @@ function startObserver() {
   const viewer = document.getElementById("viewer");
 
   if (!viewer) {
-    console.log("Viewer element not found");
     return;
   }
 

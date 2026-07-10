@@ -11,12 +11,23 @@ This project was built for a Chrome Extension assignment using Manifest V3.
 - Opens PDFs in a bundled PDF.js viewer
 - Navigates forward through sentence groups with `Tab`
 - Navigates backward through sentence groups with `Shift + Tab`
+- Starts navigation from the currently visible PDF text when no sentence is active
 - Highlights the active sentence group inside the PDF
 - Clears the active highlight with `Escape`
 - Clears the active highlight when the user clicks inside the document
 - Supports long PDFs by working with PDF.js lazy rendering
 - Uses layout-aware grouping to reduce very large highlighted chunks
 - Runs locally in the browser without sending PDF text to an external server
+
+## Screenshots
+
+### Popup Settings
+
+![Popup settings](docs/screenshots/popup-settings.png)
+
+### Sentence Highlighting
+
+![Sentence highlighting in PDF viewer](docs/screenshots/sentence-highlight.png)
 
 ## How It Works
 
@@ -48,6 +59,12 @@ The sentence-ending logic includes checks for common cases such as abbreviations
 | `Escape`      | Clear the active highlight          |
 | Mouse click   | Clear the active highlight          |
 
+## Highlight Settings
+
+The extension popup includes controls for changing the highlight color and border thickness.
+
+Settings are saved locally with `chrome.storage.local`, so they stay available after refreshing or reopening the PDF viewer.
+
 ## Installation
 
 1. Clone or download this repository.
@@ -76,7 +93,7 @@ To test a PDF, open it in the bundled PDF.js viewer and use `Tab` / `Shift + Tab
 
 ## Test PDFs
 
-The `test-pdfs/` folder contains PDFs used during development and testing.
+The `pdfjs/pdf-samples/` folder contains PDFs used during development and testing.
 
 These PDFs are included to check different behavior:
 
@@ -114,8 +131,7 @@ The extension does not send PDF text, document content, or navigation data to an
 
 Planned or possible improvements include:
 
-- Start navigation from the currently visible page instead of the beginning of the document
-- Add popup settings for highlight color, border thickness, and grouping sensitivity
+- Add popup settings for grouping sensitivity
 - Allow PDFs opened in Chrome to be forwarded into the extension's bundled PDF.js viewer
 - Improve reading order for multi-column PDFs
 - Improve partial sentence highlighting when sentence boundaries occur inside a single PDF.js text span
