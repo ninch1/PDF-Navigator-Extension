@@ -1,19 +1,19 @@
 const DEFAULT_SETTINGS = {
-  highlightColor: "#ffa500",
+  highlightColor: '#ffa500',
   borderThickness: 2,
 };
 
 function applyNavigatorSettings(settings) {
   const root = document.documentElement;
-  root.style.setProperty("--sentence-highlight-color", settings.highlightColor);
+  root.style.setProperty('--sentence-highlight-color', settings.highlightColor);
   root.style.setProperty(
-    "--sentence-border-thickness",
+    '--sentence-border-thickness',
     `${settings.borderThickness}px`,
   );
 }
 
 function loadNavigatorSettings() {
-  if (typeof chrome === "undefined" || !chrome.storage?.local) {
+  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
     applyNavigatorSettings(DEFAULT_SETTINGS);
     return;
   }
@@ -23,7 +23,7 @@ function loadNavigatorSettings() {
   });
 
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== "local") {
+    if (area !== 'local') {
       return;
     }
 
@@ -67,43 +67,43 @@ function isSentenceEnd(text) {
 
 // abbreviations where the period should not count as a sentence ending
 const alwaysSkipAbbreviations = new Set([
-  "mr.",
-  "mrs.",
-  "ms.",
-  "dr.",
-  "prof.",
-  "sr.",
-  "jr.",
-  "st.",
+  'mr.',
+  'mrs.',
+  'ms.',
+  'dr.',
+  'prof.',
+  'sr.',
+  'jr.',
+  'st.',
 ]);
 
 // abbreviations that only sometimes act like sentence endings,
 // depending on what comes after them
 const contextAbbreviations = new Set([
-  "e.g.",
-  "i.e.",
-  "etc.",
-  "vs.",
-  "fig.",
-  "eq.",
-  "no.",
-  "vol.",
-  "pp.",
-  "p.",
-  "ch.",
-  "sec.",
-  "approx.",
-  "ca.",
-  "a.m.",
-  "p.m.",
-  "inc.",
-  "ltd.",
-  "co.",
-  "corp.",
+  'e.g.',
+  'i.e.',
+  'etc.',
+  'vs.',
+  'fig.',
+  'eq.',
+  'no.',
+  'vol.',
+  'pp.',
+  'p.',
+  'ch.',
+  'sec.',
+  'approx.',
+  'ca.',
+  'a.m.',
+  'p.m.',
+  'inc.',
+  'ltd.',
+  'co.',
+  'corp.',
 ]);
 
 function isSentencePunctuation(char) {
-  return char === "." || char === "?" || char === "!";
+  return char === '.' || char === '?' || char === '!';
 }
 
 function isClosingChar(char) {
@@ -141,8 +141,8 @@ function getTokenInfo(text, index) {
 
 function cleanToken(token) {
   return token
-    .replace(/^[([{“‘"'`]+/, "")
-    .replace(/[),;:}\]”’"'`»›]+$/g, "")
+    .replace(/^[([{“‘"'`]+/, '')
+    .replace(/[),;:}\]”’"'`»›]+$/g, '')
     .toLowerCase();
 }
 
@@ -157,7 +157,7 @@ function getNextUsefulChar(text, startIndex) {
     return char;
   }
 
-  return "";
+  return '';
 }
 
 function isNumberDot(text, index) {
@@ -168,13 +168,13 @@ function isUrlOrEmailDot(text, index) {
   const tokenInfo = getTokenInfo(text, index);
   const token = tokenInfo.token;
 
-  const tokenWithoutEndPunctuation = token.replace(/[.!?,"')\]}”’»›]+$/g, "");
+  const tokenWithoutEndPunctuation = token.replace(/[.!?,"')\]}”’»›]+$/g, '');
   const lowerToken = tokenWithoutEndPunctuation.toLowerCase();
 
   const looksLikeUrlOrEmail =
-    lowerToken.includes("://") ||
-    lowerToken.startsWith("www.") ||
-    lowerToken.includes("@") ||
+    lowerToken.includes('://') ||
+    lowerToken.startsWith('www.') ||
+    lowerToken.includes('@') ||
     /^[a-z0-9-]{2,}\.[a-z0-9.-]{2,}(\/|$|\?|#|:)/i.test(lowerToken);
 
   if (!looksLikeUrlOrEmail) {
@@ -210,7 +210,7 @@ function isAbbreviationDot(text, index) {
       return true;
     }
 
-    if (nextChar === "," || nextChar === ";" || nextChar === ":") {
+    if (nextChar === ',' || nextChar === ';' || nextChar === ':') {
       return true;
     }
 
@@ -223,7 +223,7 @@ function isAbbreviationDot(text, index) {
 // decides whether a period should be ignored as a sentence ending
 // for cases like decimals, URLs, emails, and abbreviations
 function shouldSkipSentenceEnd(text, index) {
-  if (text[index] !== ".") {
+  if (text[index] !== '.') {
     return false;
   }
 
@@ -250,7 +250,7 @@ function isVerticallyVisible(rect, containerRect) {
 // viewer container vertically; -1 if none are visible
 // fromEnd: if false, returns the first visible group; if true, returns the last visible group
 function findVisibleGroupIndex(fromEnd = false) {
-  const viewerContainer = document.getElementById("viewerContainer");
+  const viewerContainer = document.getElementById('viewerContainer');
 
   if (!viewerContainer || sentenceGroups.length === 0) {
     return -1;
@@ -292,7 +292,7 @@ function findVisibleGroupIndex(fromEnd = false) {
 }
 
 function scrollViewer(direction) {
-  const viewerContainer = document.getElementById("viewerContainer");
+  const viewerContainer = document.getElementById('viewerContainer');
 
   if (!viewerContainer) {
     return;
@@ -300,30 +300,30 @@ function scrollViewer(direction) {
 
   const scrollAmount = viewerContainer.clientHeight * 0.8;
 
-  if (direction === "down") {
+  if (direction === 'down') {
     viewerContainer.scrollBy({
       top: scrollAmount,
-      behavior: "smooth",
+      behavior: 'smooth',
     });
   }
 
-  if (direction === "up") {
+  if (direction === 'up') {
     viewerContainer.scrollBy({
       top: -scrollAmount,
-      behavior: "smooth",
+      behavior: 'smooth',
     });
   }
 }
 
 // reads the PDF.js page number that a text span belongs to
 function getPageNumber(span) {
-  const pageEl = span.closest(".page");
+  const pageEl = span.closest('.page');
 
   if (!pageEl) {
     return 0;
   }
 
-  return parseInt(pageEl.getAttribute("data-page-number"), 10) || 0;
+  return parseInt(pageEl.getAttribute('data-page-number'), 10) || 0;
 }
 
 // after sentenceGroups is rebuilt, re-point activeGroupIndex at the group that
@@ -341,7 +341,7 @@ function syncActiveGroupAfterRebuild() {
   // keep the highlight visible if the anchored group is still rendered
   if (activeGroupIndex >= 0) {
     sentenceGroups[activeGroupIndex].forEach((span) =>
-      span.classList.add("sentence-active"),
+      span.classList.add('sentence-active'),
     );
   }
 }
@@ -351,7 +351,7 @@ function syncActiveGroupAfterRebuild() {
 // .textLayer and filter out wrappers and invisible/zero-size spans instead of
 // relying on that exact attribute.
 function getTextSpans() {
-  const allSpans = Array.from(document.querySelectorAll(".textLayer span"));
+  const allSpans = Array.from(document.querySelectorAll('.textLayer span'));
 
   return allSpans.filter((span) => {
     const text = span.textContent.trim();
@@ -361,7 +361,7 @@ function getTextSpans() {
     }
 
     // skip wrapper spans that contain another span (keep the leaf)
-    if (span.querySelector("span")) {
+    if (span.querySelector('span')) {
       return false;
     }
 
@@ -416,7 +416,7 @@ function shouldBreakBetweenSpans(currentEntry, nextEntry) {
 
   // heading heuristic: a short line with no sentence punctuation whose height is
   // noticeably larger than the following span (a size jump into body text)
-  const currentText = currentEntry.text || "";
+  const currentText = currentEntry.text || '';
   const isShort = currentText.length <= layoutBreak.headingMaxChars;
   const hasNoSentencePunctuation = !/[.?!]/.test(currentText);
   const isTallerThanNext =
@@ -498,7 +498,7 @@ function updateSentenceGroups() {
 
 // start the observer to update the sentence groups when the PDF text spans change
 function startObserver() {
-  const viewer = document.getElementById("viewer");
+  const viewer = document.getElementById('viewer');
 
   if (!viewer) {
     return;
@@ -523,8 +523,8 @@ function startObserver() {
 }
 
 // start when the document is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", startObserver);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startObserver);
 } else {
   startObserver();
 }
@@ -533,27 +533,27 @@ if (document.readyState === "loading") {
 function clearActiveGroup() {
   if (activeGroupIndex >= 0 && activeGroupIndex < sentenceGroups.length) {
     sentenceGroups[activeGroupIndex].forEach((span) =>
-      span.classList.remove("sentence-active"),
+      span.classList.remove('sentence-active'),
     );
   }
 }
 
 // clear the active group highlight when the user clicks anywhere
-document.addEventListener("click", () => {
+document.addEventListener('click', () => {
   clearActiveGroup();
   activeGroupIndex = -1;
   activeAnchorSpan = null;
 });
 
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
     clearActiveGroup();
     activeGroupIndex = -1;
     activeAnchorSpan = null;
     return;
   }
 
-  if (event.key !== "Tab") return;
+  if (event.key !== 'Tab') return;
 
   // prevent Tab from focusing PDF.js toolbar/buttons
   event.preventDefault();
@@ -579,12 +579,12 @@ document.addEventListener("keydown", (event) => {
   // the other end. Once PDF.js renders the next page, the observer grows
   // sentenceGroups and the next Tab continues forward from here.
   if (target < 0) {
-    scrollViewer("up");
+    scrollViewer('up');
     return;
   }
 
   if (target >= sentenceGroups.length) {
-    scrollViewer("down");
+    scrollViewer('down');
     return;
   }
 
@@ -596,12 +596,12 @@ document.addEventListener("keydown", (event) => {
 
   // add new highlight
   sentenceGroups[activeGroupIndex].forEach((span) =>
-    span.classList.add("sentence-active"),
+    span.classList.add('sentence-active'),
   );
 
   // scroll to new highlight
   sentenceGroups[activeGroupIndex][0].scrollIntoView({
-    behavior: "smooth",
-    block: "center",
+    behavior: 'smooth',
+    block: 'center',
   });
 });
