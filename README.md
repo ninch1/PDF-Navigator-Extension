@@ -118,6 +118,7 @@ The extension does not send PDF text, document content, or navigation data to an
 - Highlighting is based on PDF.js text spans, so a highlight may sometimes include nearby text when a sentence boundary occurs inside a single span.
 - Sentence detection is heuristic-based and may not be perfect for every PDF.
 - The current version opens PDFs through the bundled PDF.js viewer. Support for automatically forwarding PDFs opened in Chrome to this viewer is planned as a future improvement.
+- Local PDFs chosen with **Choose local PDF** are limited to under 20 MB, because the picker passes the PDF bytes through extension messaging. Larger local PDFs are not supported by the current picker.
 
 ## Tech Stack
 

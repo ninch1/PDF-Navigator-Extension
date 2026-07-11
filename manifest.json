@@ -3,8 +3,12 @@
   "name": "PDF Sentence Navigator",
   "version": "1.0.0",
   "description": "Navigate PDF sentences with Tab and Shift+Tab.",
+  // "storage": saves highlight color / border thickness settings.
+  // "activeTab": lets the popup read the active tab's URL when the user clicks the extension.
   "permissions": ["storage", "activeTab"],
+  // Lets the background service worker fetch remote PDF bytes from any site (avoids CORS).
   "host_permissions": ["<all_urls>"],
+  // Background service worker: fetches remote PDFs and hands the bytes to the viewer.
   "background": {
     "service_worker": "background.js"
   },
