@@ -15,6 +15,7 @@ const MAX_LOCAL_PDF_SIZE_MB = 20;
 const colorInput = document.getElementById("highlightColor");
 const thicknessInput = document.getElementById("borderThickness");
 const thicknessValue = document.getElementById("borderThicknessValue");
+const resetSettingsButton = document.getElementById("resetSettings");
 const openCurrentPdfButton = document.getElementById("openCurrentPdf");
 const chooseLocalPdfButton = document.getElementById("chooseLocalPdf");
 const localPdfInput = document.getElementById("localPdfInput");
@@ -33,13 +34,18 @@ function updateThicknessLabel() {
   thicknessValue.textContent = `${thicknessInput.value}px`;
 }
 
-function showCurrentPdfMessage(text) {
+// Shows a popup message. type is "error" (default) or "success", which controls
+// the text color via the .error / .success classes.
+function showCurrentPdfMessage(text, type = "error") {
   currentPdfMessage.textContent = text;
+  currentPdfMessage.classList.remove("error", "success");
+  currentPdfMessage.classList.add(type);
   currentPdfMessage.hidden = false;
 }
 
 function clearCurrentPdfMessage() {
   currentPdfMessage.textContent = "";
+  currentPdfMessage.classList.remove("error", "success");
   currentPdfMessage.hidden = true;
 }
 
@@ -129,6 +135,15 @@ colorInput.addEventListener("input", saveSettings);
 thicknessInput.addEventListener("input", () => {
   updateThicknessLabel();
   saveSettings();
+});
+
+// Restore the default highlight color and border thickness.
+resetSettingsButton.addEventListener("click", () => {
+  colorInput.value = DEFAULT_SETTINGS.highlightColor;
+  thicknessInput.value = DEFAULT_SETTINGS.borderThickness;
+  updateThicknessLabel();
+  saveSettings();
+  showCurrentPdfMessage("Highlight settings reset.", "success");
 });
 
 openCurrentPdfButton.addEventListener("click", () => {

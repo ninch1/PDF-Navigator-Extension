@@ -44,10 +44,17 @@
         cursor: pointer;
       }
 
-      #currentPdfMessage {
+      .message {
         margin: 8px 0 0;
         font-size: 12px;
+      }
+
+      .message.error {
         color: #b00020;
+      }
+
+      .message.success {
+        color: #1a7f37;
       }
     </style>
   </head>
@@ -71,6 +78,8 @@
       />
     </label>
 
+    <button type="button" id="resetSettings">Reset highlight settings</button>
+
     <a
       href="pdfjs/web/viewer.html?file=../pdf-samples/sample.pdf"
       target="_blank"
@@ -81,7 +90,7 @@
     <button type="button" id="openCurrentPdf">Open current PDF</button>
     <button type="button" id="chooseLocalPdf">Choose local PDF</button>
     <input type="file" id="localPdfInput" accept="application/pdf,.pdf" hidden />
-    <p id="currentPdfMessage" hidden></p>
+    <p id="currentPdfMessage" class="message" hidden></p>
 
     <script src="popup.js"></script>
   </body>
