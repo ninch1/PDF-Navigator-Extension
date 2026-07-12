@@ -109,16 +109,16 @@ The popup also includes a reset button to restore the default highlight color an
 
 The project can be tested with the included sample PDF, online PDFs, or local PDFs.
 
-Recommended test cases:
+Recommended test cases and expected behavior:
 
-- a short normal text PDF
-- a long book PDF
-- a PDF with headings and paragraphs
-- a PDF with bullet points or numbered lists
-- a two-column article or research paper
-- a scanned/image-only PDF
-- an online PDF opened through **Open current PDF**
-- a local PDF opened through **Choose local PDF**
+- a short normal text PDF — should work normally
+- a long book PDF — should continue navigating as PDF.js lazily renders more pages
+- a PDF with headings and paragraphs — should create smaller sentence-like groups using layout-aware grouping
+- a PDF with bullet points or numbered lists — should work, though grouping may vary depending on the PDF text layer
+- a two-column article or research paper — may not follow perfect reading order; this is a known limitation
+- a scanned/image-only PDF — expected not to work unless it contains selectable/OCR text
+- an online PDF opened through **Open current PDF** — should open in the extension viewer if the PDF URL is detected and accessible
+- a local PDF opened through **Choose local PDF** — should work for PDFs under 15 MB
 
 To test navigation, open a PDF in the extension viewer and use `Tab` / `Shift + Tab` to move through the highlighted sentence groups.
 
