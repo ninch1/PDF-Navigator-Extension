@@ -10,7 +10,7 @@ const CHROME_PDF_VIEWER_EXTENSION_ID = "mhjfbmdgcfjbbpaeojofohoefgiehjai";
 
 // The local picker sends PDF bytes through chrome.runtime.sendMessage, which is
 // JSON-based, so very large files are too heavy to pass this way. Cap the size.
-const MAX_LOCAL_PDF_SIZE_MB = 20;
+const MAX_LOCAL_PDF_SIZE_MB = 15;
 
 const colorInput = document.getElementById("highlightColor");
 const thicknessInput = document.getElementById("borderThickness");

@@ -4,14 +4,14 @@ PDF Sentence Navigator is a Chrome Extension that opens PDFs in an extension-hos
 
 The extension highlights the currently active sentence or sentence-like text group and allows users to move forward and backward through the PDF using `Tab` and `Shift + Tab`.
 
-PDFs can be opened from the included sample files, from the current online PDF tab, or from a local PDF selected through the popup.
+PDFs can be opened from the included sample PDF, from the current online PDF tab, or from a local PDF selected through the popup.
 
 This project was built for a Chrome Extension assignment using Manifest V3.
 
 ## Features
 
 - Opens PDFs in an extension-hosted PDF.js viewer
-- Opens included sample PDFs
+- Opens the included sample PDF
 - Opens the current online PDF tab in the extension viewer
 - Opens local PDFs selected from the popup
 - Navigates forward through sentence groups with `Tab`
@@ -56,9 +56,13 @@ The popup provides three ways to open PDFs:
 - **Open current PDF** opens the PDF from the active online PDF tab in the extension viewer.
 - **Choose local PDF** lets the user select a PDF from their computer.
 
-Remote online PDFs are fetched by the extension background service worker and loaded into the PDF.js viewer as local PDF data. This avoids direct remote loading issues with PDF.js same-origin checks and cross-origin restrictions.
+Remote online PDFs are fetched by the extension background service worker and loaded into the PDF.js viewer as local PDF data. This fetch is user-initiated (it only runs when the user clicks **Open current PDF**) and uses the extension host permissions. The background fetch may include existing site cookies when the original PDF host requires them to serve the file. This avoids direct remote loading issues with PDF.js same-origin checks and cross-origin restrictions.
 
-Local PDFs are supported through the file picker, but the current picker is limited to PDFs under 20 MB.
+**Open current PDF** detects obvious PDF URLs, such as URLs ending in `.pdf`, so PDFs served from URLs without `.pdf` may not be detected.
+
+Local `file://` PDF tabs are not supported by **Open current PDF**. To open a PDF from your computer, use **Choose local PDF** instead.
+
+Local PDFs are supported through the file picker, but the current picker is limited to PDFs under 15 MB.
 
 ## Sentence Grouping
 
@@ -103,7 +107,7 @@ The popup also includes a reset button to restore the default highlight color an
 
 ## Testing
 
-The project can be tested with the included sample PDFs, online PDFs, or local PDFs.
+The project can be tested with the included sample PDF, online PDFs, or local PDFs.
 
 Recommended test cases:
 
@@ -140,7 +144,10 @@ The extension does not send PDF text, document content, or navigation data to an
 - Multi-column PDFs may not always follow perfect reading order.
 - Highlighting is based on PDF.js text spans, so a highlight may sometimes include nearby text when a sentence boundary occurs inside a single span.
 - Sentence detection is heuristic-based and may not be perfect for every PDF.
-- Local PDFs chosen with **Choose local PDF** are limited to under 20 MB because the picker passes PDF bytes through extension messaging.
+- Local PDFs chosen with **Choose local PDF** are limited to under 15 MB because the picker passes PDF bytes through extension messaging.
+- Local `file://` PDF tabs are not supported by **Open current PDF**; use **Choose local PDF** to open a PDF from your computer instead.
+- **Open current PDF** only detects obvious PDF URLs, such as URLs ending in `.pdf`, so PDFs served from URLs without `.pdf` may not be detected.
+- Viewer tabs opened through the remote/local `pdfDataId` handoff may not reload correctly after a page refresh, because the temporary PDF data is used once and then released.
 - Password-protected, login-gated, or bot-protected online PDFs may fail if the background fetch cannot access the PDF data.
 
 ## Tech Stack
